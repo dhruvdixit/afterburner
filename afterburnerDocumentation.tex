@@ -1,0 +1,615 @@
+\chapter{Afterburning-Software}
+	This section will describe the afterburning macros. It is devided into the explaination of the scripts and the description of the macros themselfes which can be devided into 3 main topics, the material macros, the meson macros and the gamma macros.
+
+	\section{The Material Macros}
+		For succesfully running the material macros it is necesary to create a new subfolder called ``\$Cutnumber`` and in this a subfolder \$Suffix`` with respect to the working directory, otherwise the output can not be written.
+		\subsection{Plot\_Mapping\_Histos\_Events.C}
+		This macro was designed to produce the plots for the material checks, additionally it provides the calculation of the deviation between data an montecarlo for one cut. \\
+		It can be started by
+		\begin{lstlisting}[]{startingMaterialMacro}	
+root -l -x -q -b  Plot_Mapping_Histos_Events.C\(\"DataFile.root\"\,\"MCfile.root\"\,\"Cutnumber\"\,\"NameOutputfile\"\,\"Suffix\"\,\"optConf\"\,\"optEn\"\)
+		\end{lstlisting}
+		The values for accepted for \textit{optConf} are ``conf'' or "" and for \textit{optEn} ``7TeV'', ``900GeV'' and ``HI''. This macro will produce a summary ps-file with the name ``NameOutputfile.ps'', as well as a data-file, containing the systematic error calculation ``Export\_Mapping.dat''. Moreover single plots will be produced with the file ending \$Suffix, specified in the calling.  In the subfolder called ``Plot\_Mapping\_Histos\_Events'' plots for each $R$, $Z$ and $\phi$ bin will appear in seperate plots. Furthermore the bidimensional plots will be produced, and the $R$ and $Z$-distributions in different versions.\\
+		The optEn-flag will take care of the correct labelling of the plots and if you run with the \textit{optConf}=``conf'', some plots will be tagged with ``conference'' in the end, and some improvements will be made to their styling. Furthermore the individuall plots in the $Z$, $R$ and $\phi$ bins will only be produced in the combined output-file.
+		\subsection{Photon\_Characteristics\_Events.C}
+		The Photon\_Characteristcs-macro was invented to check the photon properties. Here plots like the $dE/dx$-distribution, $p_t$ of $e^\pm$ and $\gamma$, as well as basic reconstruction properties (DCA, $\chi^2$). It can be started by
+		\begin{lstlisting}[]{startingMaterialMacro}
+root -l -x -q -b  Photon_Characteristics_Events.C\(\"Datafile.root\"\,\"MCfile.root\"\,\"Cutnumber\"\,\"NameOutputfile\"\,\"Suffix\"\,\"optConf\"\,\"optEn\"\)
+		\end{lstlisting}
+		 The options for energy and conference have the same meaning as for the Plot\_Mapping\_Histos\_Events.C. Similarly a summarizing output ps-file will be produced and the single plots will be stored in the suffix directory in the subfolder ``Photon\_Characteristics\_Events''. 
+	
+	\section{The Meson Macros}
+		For the meson macros there are several options which are defined in a common way, they are
+			\begin{itemize}
+			 \item \textbf{Meson}
+				\begin{itemize}
+				 \item [*] Pi0		- The input will be analysed with respect to $\pi^0$ properties
+				 \item [*] Eta		- The input will be analysed with respect to $\eta$ properties
+				 \item [*] Pi0EtaBinning - The input will be analysed with respect to $\pi^0$ properties, but in the same $p_t$ binning as processed for the $\eta$ analysis
+				\end{itemize}
+			 \item \textbf{Suffix} 	- a graphical output format can be chosen according to your needs (like ``eps'', ``gif'' \ldots).
+			 \item \textbf{Cutnumber} - this has to be handed over in order to extract which cut of a given output file of the AnalyisTask has to be analysed
+			 \item \textbf{optEn}   - according to this choice, ranges, labels and calculations will be adjusted taking into account the energy dependence
+				\begin{itemize}
+				 \item [*] 7TeV		
+				 \item [*] 900GeV	
+				 \item [*] HI
+				\end{itemize} 
+ 			 \item \textbf{optMult}
+				\begin{itemize}
+				\item [*] ``Mult''  - If this option is chosen, the spectra will be normalised to the selected events after multiplicity choices$\backslash$ V0AND choices$\backslash$ centrality choices including vertex requirements. Furthermore the CutStudiesOverview.C will run in a special mode producing comparision plots to show for instance $R_{mult}$ and $R_{CP}$. 
+				\item [*] ""	- All spectra will be normalized to the physics selection.
+				\end{itemize}
+			 \item \textbf{optConf}
+				\begin{itemize}
+ 				\item [*] ``conf''  - Some plots will be tagged with ``conference'' in the end, as well as a specific $p_t$ binning might be chosen depending on the energy.
+				\item [*] ""	- The usual plots will be produced. 
+				\end{itemize}
+			 \item \textbf{optMC}
+				\begin{itemize}
+ 				\item [*] ``kFALSE''    - input treated as data, for output files ``data'' will appear in the name
+				\item [*] ``kTRUE''     - input will be treated as MC-simulation, for output files ``MC'' will appear in the name
+				\end{itemize}
+			\end{itemize}
+		In the next subsections it will be explained what the different macros are doing, what is contained in their output files and where the plots comming form the macros are stored. As already necessary for the material macros we need a file structure, originating in your working directory build up as follow, a directory for each CutNumber containing a directory with the name of your preferred outputfile ending (like ``eps'', ``gif'' \ldots). If this structure is not provided the output can not be saved.
+			
+		\subsection{ExtractSignal.C}
+		The output of the ExtractSignal.C is the basis for all further macros, as it basically provides all histograms which are needed for the further calculation like, efficiencies, acceptance, RAW yields, fitted masses, \ldots. First of all the structure of the macro will be decribed and then the functions contained, in the end the outputs will be described.\\
+		The extract Signal can be called by:
+		\begin{lstlisting}
+root -x -q -l -b  ExtractSignal.C\+\+\(\"$Meson\"\,\"$RootFile\"\,\"$Cutnumber\"\,\"$Suffix\"\,\"$optMC\"\,\"$optEn\"\,\"$optFit\"\,\"$optConf\"\,\"$optMult\"\,$BinsPtMeson\)               
+		\end{lstlisting}
+		The Input is basically only the \$RootFile, which has to be an output file of the GammaConversion AnalysisTask. The other components of this call are just options, where most of them are common and will have the same effects as for the other macros. However it has to be emphasised, that in the case of Conference running a different binning might be chosen, having less bins in $p_t$ and being especially adapted to be shown in public. The usual runnign mode is just for internal discussions. Depending on this you will have to adjust the \$BinsPtMeson variable, which gives the maximum number of bins taken for this analysis. However if you have to much bins compared to the implemented number it will be set to the maximum for the chosen running mode. Depending wether optMC is set to ``kFALSE'' or ``kTRUE'' the correction file will be produced as well and some additional checks on the basis of MC will be performed. \\
+
+		\noindent \textbf{Structural Conception:}\\
+		The macro ExtractSignal.C first of all reads the 2D invariant mass histograms, where the invariant mass is plotted against $p_t$ of the pair. Afterwards it creates from this an array of 1D histograms summed over a certain $p_t$ range, which depends on the energy option as well as the Meson which was specified. For the background there is the option to created a weighted background in Z-vertex classes as well as multiplicity bins. Having done this one normalizes the background to the signal in a given region next to the signal peak on the right to match the statistics in the signal-histograms. Then the background is substracted from the signal and the signal histogram is fitted with a Gaussian convoluted with an exponential tail and a linear background-function or with a CrystallBall-function. From this fit the mass-position is extracted as well as the FWHM, S/B and Significance. Afterwards the integration region of to get the RAW-yield is shifted according to the deviation of the mass from the nominal PDG-value and the RAW-Yield is calculated substracting the Integral under the linear BG-fit as well in the same region. To evaluate the systematic error of the yield extraction the integration range is varied from very close to the peak, to an intermediate range to a very wide range around the peak. Additionally this procedure is repeated taking a normalisation region for the background on the left hand side of the peak. \\
+		After having extracted all this value they are saved in the corresponding histograms and written into a file. Furthermore the plots of invariant mass in $p_t$ bins are created, ones with the signal and the background and ones with the substracted signal and the fit.  \\
+		For Montecarlo files the true invariant mass spectra are treated in the same way, and the acceptance and efficiency are calculated for each case of the signal extraction and written into a correction-file.\\
+		
+		\noindent \textbf{Description of the functions:}
+		\begin{itemize}
+		 \item \begin{lstlisting}
+void Calculate GammaCorrection()
+		       \end{lstlisting}
+			This function calculates all $\gamma$-spectra in the same binning as for the meson as well as the decay-$\gamma$-spectra, purity, reconstruction-efficiency and the conversion probability.
+		\item \begin{lstlisting}
+void ProcessEM(TH1D* fGammaGamma, TH1D* fBck, Double_t * fBGFitRange)	       	
+		      \end{lstlisting}
+			This function produces a scaled background adjusted in the fBGFitRange to the fGammaGamma-histogram of the fBck-histogram.
+		\item \begin{lstlisting}
+void ProcessRatioSignalBackground(TH1D* fGammaGamma, TH1D* fBck)
+		      \end{lstlisting}
+			This function creates the ration of fGammaGamma to fBck.
+		\item \begin{lstlisting}
+void FillMassHistosArray(TH2F* fGammaGammaInvMassVSPt, TH2F *fAlphaPeakPos)
+		      \end{lstlisting}
+			This function produces the array of $p_t$ binned invariant mass-histograms of the signal as well as the signal in $\|\alpha\| < 0.1$, additionally the signal histogram in the mid and full $p_t$ range is calculated.  
+		\item \begin{lstlisting}
+void FillMassMCTrueMesonHistosArray(TH2F* fHistoTrueMesonInvMassVSPt)
+		      \end{lstlisting}
+			This function will create the in $p_t$-binned invariant mass spectra for the true MC spectrum. It can only be called if you are running MC, otherwise the input histogram does not exist.
+		\item \begin{lstlisting}
+void CreatePtHistos()
+		      \end{lstlisting}
+			In this function all histograms containing informations which are plotted against $p_t$ are created like: Mass, FWHM, TrueMass, \ldots.
+		\item \begin{lstlisting}
+void FillPtHistos()
+		      \end{lstlisting}
+			In this function all histograms containing informations which are plotted against $p_t$ are filled like: Mass, FWHM, TrueMass, \ldots.
+		\item \begin{lstlisting}
+void PlotInvMassSinglePtBin(TH1D* fHistoMappingGGInvMassPtBin, TH1D* fHistoMappingBackNormInvMassPtBin, TString namePlot, TString nameCanvas)
+void PlotInvMassInPtBins(TH1D** fHistoMappingGGInvMassPtBin, TH1D** fHistoMappingBackNormInvMassPtBin, TString namePlot, TString nameCanvas, TString namePad)
+void PlotInvMassRatioInPtBins(TH1D** fHistoMappingGGInvMassPtBin, TString namePlot, TString nameCanvas, TString namePad)
+void PlotWithFitSubtractedInvMassSinglePtBin(TH1D * fHistoMappingSignalInvMassPtBin, TF1 * fFitSignalInvMassPtBin, TString namePlot, TString nameCanvas) 
+void PlotWithFitSubtractedInvMassSinglePtBin2(TH1D * fHistoMappingSignalInvMassPtBin, TF1 * fFitSignalInvMassPtBin, TString namePlot, TString nameCanvas)
+void PlotWithFitSubtractedInvMassInPtBins(TH1D ** fHistoMappingSignalInvMassPtBin, TF1 ** fFitSignalInvMassPtBin, TString namePlot, TString nameCanvas, TString namePad)
+void PlotWithFitPeakPosInvMassInPtBins(TH1D ** fHistoMappingSignalInvMassPtBin, TF1 ** fFitSignalInvMassPtBin, TString namePlot, TString nameCanvas, TString namePad)
+		      \end{lstlisting}
+			These functions will plot the histograms put in the the file specified by ``namePlot''. For the PlotWithFitSubstracted*-functions additionally the fitted function will be plotted. For the functions not containing ``Single'' in the upper right corner the energy, number of events, the process 
+			and the ALICE-Logo will appear.
+		\item \begin{lstlisting}	
+void FitSubtractedInvMassInPtBins(TH1D* fHistoMappingSignalInvMassPtBinSingle, Double_t* fMesonIntRange, Int_t ptBin, Bool_t vary)
+void FitPeakPosInvMassInPtBins(TH1D* fHistoMappingSignalInvMassPtBinSingle,Double_t * fMesonIntRange, Int_t ptBin, Bool_t vary)
+void FitCBSubtractedInvMassInPtBins(TH1D* fHistoMappingSignalInvMassPtBinSingle,Double_t * fMesonIntRange, Int_t ptBin,Bool_t vary ,TString functionname)	        
+		      \end{lstlisting}
+			This functions fit the invariant mass spectra, wher FitSubstractedInvMassInPtBins() will fit with a Gaussian convoluted with an exponential tail, which accounts as well for FitPeakPosInvMassInPtBins(). Only FitCBSubstractedInvMassInPtBins() will fit the spectrum with a CrystallBall-function. This function is not yet final and should not be used.
+		\item \begin{lstlisting}
+void ProduceBckWithoutWeighting(TH2F *fBckInvMassVSPt)\\
+void ProduceBckProperWeighting(TList* fESDContainer,TList* fBackgroundContainer)
+		      \end{lstlisting}
+			This functions will take care of the proper binning of the background invariant mass spectra in $p_t$ either with or without weighting the background in Z-vertex and multiplicty bins.
+		\item \begin{lstlisting}
+void IntegrateHistoInvMass(TH1D * fHistoMappingSignalInvMassPtBinSingle, Double_t * fMesonIntRange)
+void IntegrateHistoInvMassStream(TH1D * fHistoMappingSignalInvMassPtBinSingle, Double_t * fMesonIntRange)
+void IntegrateFitFunc(TF1 * fFunc, TH1D *  fHistoMappingSignalInvMassPtBinSingle,Double_t * fMesonIntRange)
+		      \end{lstlisting}
+			This functions take care of the correct integration of the invariant mass spectra in the defined fMesonIntRange. 
+		\item \begin{lstlisting}
+void CalculateFWHM(TF1 *) 
+		      \end{lstlisting}
+		      Calculates the full width half maximum from the fit on the signal in the invariant mass spectrum.
+		\item \begin{lstlisting}
+void FillHistosArrayMC(TH2F* fHistoMCMesonPtEtaWithinAcceptance, TH1D * fHistoMCMesonPt, TH1D * fDeltaPt) 
+		      \end{lstlisting}
+		     Creates one dimensional MC-histograms in the correct $p_t$ binning.
+		\item \begin{lstlisting} 
+void CalculateMesonAcceptance();
+void CalculateMesonEfficiency(TH1D*, TString);
+		      \end{lstlisting}
+			Calculate the acceptance and efficiencies from the montecarlo data.
+		\item \begin{lstlisting}
+void SaveHistos(Int_t, TString, TString);
+		      \end{lstlisting}
+			In this function all histograms not needed for the correction of the spectra are saved, consistently for MC and data, like RAW-Yield, mass, FWHM, \ldots, however in the case of running MC some additional histograms are saved in order to compare them to the data.
+		\item \begin{lstlisting}
+void SaveCorrectionHistos(TString , TString);
+		      \end{lstlisting}
+			Here all files definitely need as well in the case of not running MC in one of the following macros are saved in order to have some of the MC information still available at the later level.
+		\item \begin{lstlisting} 
+void Initialize(TString setPi0, Int_t numberOfBins);
+		      \end{lstlisting}
+			THis function initializes all array which are needed in the further computation. Furthermore it set the on the meson dependend variables to their specific value by checking the content of \textit{setPi0}. The number of bins is given by \textit{numberOfBins}, through this value it can be controlled how far the spectrum should reach.
+		\item \begin{lstlisting}
+Double_t CrystalBallBck(Double_t *,Double_t *);
+Double_t CrystalBall(Double_t *,Double_t *);
+		      \end{lstlisting}
+		     This are the functional definitions of the CrystallBall-function with and without linear background.
+		\item \begin{lstlisting}
+void Delete()		       	
+		      \end{lstlisting}
+		     Here all memory allocated the Initialize() will be set free again. 
+		\end{itemize}
+		\textbf{The Outputs:}\\
+		\noindent The ExtractSignal.C has several dat files as output, further more it will produce at least 1 root file, if running on MC it will even produce two of them.\\
+		\noindent To keep track of the errors during running the macro an error log file is written. It will contain the information whether the fitting crashed or not. It is name as following:
+		\begin{center}
+		 	\$Meson\_\$optMC\_FileErrLog\_\$Cutnumber.dat
+		\end{center}
+		In addition a data file named 
+		\begin{center}
+		 	\$Meson\_\$optMC\_EffiCheck\_RAWDATA\_\$Cutnumber.dat
+		\end{center}
+		is produced, containing for each $p_t$ bin the entries in each invariant mass bin, as well as the extracted yields, background and fitted values for the 6 different extraction methods. Furthermore in this file all scaling factors for the weigthing of the background in the different multiplicity and z-bins are displayed. Additionally the fit parameters for the fitting in $|\alpha| < 0.1$ will be written in case of the $\pi^0$ at 7 TeV. \\
+		\noindent The root file named 
+		\begin{center} 
+		 	\$Meson\_\$optMC\_AnalysisResultsWithoutCorrection\_\$Cutnumber.root
+		\end{center}
+		will be written as standard output file. The first table of histograms are contained no matter, whether you run MC or data, the ones mentioned below just appear if you analyse montecarlo-data.\\
+		\begin{table}[h!]
+		 	\scriptsize
+			\begin{tabular}{lll}
+				deltaPt & histoYieldMeson & histoYieldMesonWide\\
+				histoYieldMesonPerEvent & histoSignMeson & histoSBMeson\\
+				histoMassPosition & histoMassMeson & histoWidthMeson\\
+				histoFWHMMeson & histoYieldMesonNarrow & histoYieldMesonPerEventNarrow \\
+				histoSBMesonNarrow  & histoSignMesonLeftWide& histoSBMesonLeftWide	\\
+				histoYieldMesonPerEventWide & histoSignMesonWide & histoSBMesonWide\\
+				histoYieldMesonLeft & histoYieldMesonLeftPerEvent & histoSignMesonLeft \\
+				histoSBMesonLeft & histoMassMesonLeft & histoWidthMesonLeft\\
+				histoFWHMMesonLeft& histoYieldMesonLeftNarrow & histoYieldMesonLeftPerEventNarrow\\
+				histoSignMesonLeftNarrow& histoSBMesonLeftNarrow &histoYieldMesonLeftWide\\
+				histoYieldMesonLeftPerEventWide& histoSignMesonNarrow\\
+				Mapping\_BackNorm\_InvMass\_FullPt & Mapping\_GG\_InvMass\_FullPt & Mapping\_Back\_InvMass\_FullPt \\
+				ESD\_NumberOfGoodESDTracksVtx & ESD\_EventQuality & fESD\_ConvGammaPt \\
+				Signal\_InvMassFit\_in\_Pt\_Bin\$iPt& Mapping\_BckNorm\_InvMass\_in\_Pt\_Bin\$iPt	& fHistoMappingSignalInvMass\_in\_Pt\_Bin\$iPt \\
+			\end{tabular}
+		\end{table} \vspace{-0.5cm}
+		\begin{table}[h!]
+			\scriptsize
+			\begin{tabular}{lll}
+			 Mapping\_TrueMeson\_InvMass\_in\_Pt\_Bin\$iPt \\
+			 fMC\_allGammaPt & fHistoGammaMCConvPt1& fHistoGammaESDTrueConvPt1 \\
+			 histoYieldTrueMesonWide & histoTrueSignMeson & MC\_Meson\_genPt \\	
+			histoTrueSBMeson & histoYieldTrueMesonNarrow & fHistoMCMesonPtWithinAcceptance \\
+			histoYieldTrueMeson & fMCMesonAccepPt & fHistoMCMesonPtEtaWithinAcceptance\\
+			\end{tabular}
+		\end{table}
+		
+		\noindent The CorrectionFile output is named 
+		\begin{center}	
+			\$Meson\_MC\_AnalysisResultsCorrectionHistos\_\$Cutnumber.root
+		\end{center}
+		it containes 
+		\begin{table}[h!]
+			\scriptsize	
+			\begin{tabular}{lll}
+			 	fMC\_allGammaPt & fHistoGammaMCConvPt1& fHistoGammaESDTrueConvPt1 \\
+				MC\_DecayPi0GammaPt & fMC\_DecayEtaGammaPt & fMC\_DecayEtapGammaPt\\
+				fMC\_DecayOmegaGammaPt & fMC\_DecayRho0GammaPt & fMC\_DecayK0sGammaPt \\
+				fMCGammaPurity & fMCGammaConvProb & fMCGammaRecoEff \\
+				fMCMesonAccepPt & histoTrueMassMeson& histoTrueFWHMMeson\\
+				MC\_Meson\_genPt & ESD\_EventQuality& MesonEffiPt\\ 
+				MesonNarrowEffiPt& MesonWideEffiPt& MesonLeftEffiPt\\
+				MesonLeftNarrowEffiPt & MesonLeftWideEffiPt & TrueMesonEffiPt\\
+				TrueMesonNarrowEffiPt & TrueMesonWideEffiPt & ESD\_TruePi0\_InvMass\_vs\_Pt\\
+			\end{tabular}
+		\end{table}
+	
+		\subsection{CorrectSignal.C}
+		The CorrectSignal.C, corrects the meson-spectra, as well as it produces for the basic plots putting the results for all integration ranges and normalization ranges together. It can be called by typing: 
+		\begin{lstlisting}
+root -x -l -b -q CorrectSignal.C\(\"FileWithoutCorr.root\"\,\"CorrectionFile.root\"\,\"$Cutnumber\"\,\"$Suffix\"\,\"$Meson\"\,\"$optMC\"\,\"$optEn\"\,\"$optMult\"\,\"$optConf\"\)	
+		\end{lstlisting}
+		``FileWithoutCorr.root'' is the uncorrected output file of the ExtractSignal.C, you will have this for each combination of \$Meson as well as \$optMC, the ``CorrectionFile.root'' will always be called \$Meson\_MC\_AnalysisResultsCorrectionHistos\_\$Cutnumber.root. You can only put together the files for the same meson, however you can correct MC as well, but only 1 meson can be processed at the same time. If you run on simulated data, you will produce the acceptance and efficiency-plots as well. Furthermore in then the generated MC spectrum is compared to the spectrum resulting from the corrections and efficiencies are compared and ploted. \\
+		For the processed cutnumber the systematic error due to the signal extraction is calculated in addition and written to 
+		\begin{center}
+			``\$Meson\_\$optMC\_SystematicErrorYieldExtraction\_\$CutNumber.dat''. 
+		\end{center}
+		The outputfile it named \begin{center}``\$Meson\_\$optMC\_AnalysisResultsCorrection\_\$CutNumber.root" \end{center} and contains: 
+		\begin{table}[h!]
+		\scriptsize
+			\begin{tabular}{lll}
+		 	CorrectedYieldNormEff &  CorrectedYieldTrueEff & CorrectedYieldTrueEffWide \\
+			CorrectedYieldTrueEffNarrow & 	CorrectedYieldTrueEffLeft & 			CorrectedYieldTrueEffLeftWide \\
+			CorrectedYieldTrueEffLeftNarrow & CorrectedYieldTrueEff\_Mt & 
+			CorrectedYieldTrueEffWide\_Mt \\
+			CorrectedYieldTrueEffNarrow\_Mt &
+			CorrectedYieldTrueEffLeft\_Mt &
+			CorrectedYieldTrueEffLeftWide\_Mt \\
+			CorrectedYieldTrueEffLeftNarrow\_Mt &
+			CorrectedYieldTrueEff\_Xt & 				
+			CorrectedYieldTrueEffWide\_Xt \\
+			CorrectedYieldTrueEffNarrow\_Xt & 
+			CorrectedYieldTrueEffLeft\_Xt & 
+			CorrectedYieldTrueEffLeftWide\_Xt \\
+			CorrectedYieldTrueEffLeftNarrow\_Xt & 
+			histoYieldMeson &
+			histoFWHMMeson \\
+			histoMassMeson & 
+			histoSBMeson & 
+			histoSignMeson \\
+			histoYieldMesonPerEvent &
+			fMCMesonAccepPt	& 	
+			ESD\_EventQuality \\
+			TrueMesonEffiPt & 
+			histoTrueMassMeson & 
+			histoTrueFWHMMeson\\ 
+			ESD\_NumberOfGoodESDTracksVtx & 
+			MC\_Meson\_genPt & 
+			MCYield\_Meson \\
+			histoRatioComparisonPi0MCtoRec
+		\end{tabular} 
+		\end{table}
+		\subsection{CutStudiesOverview.C}
+		The CutStudiesOverview.C was designed to compare the results for different Cuts and extract the systematic error due to this. Now it can produce some more plots like the $R_{mult}$ or $R_{CP}$ plot and the plots for the $\gamma$-spectrum comparision as well. What will be produced depends highly on the energy and on the multiplicity-flag. The macro can be started as follows:
+		\begin{lstlisting}
+root -x -q -l -b CutStudiesOverview.C\(\"CutSelection.log\"\,\"$Suffix\"\,\"$Meson\"\,\"$optMC\"\,\"$optMult\"\,\"$optEn\"\,$NumberOfCuts\)		 
+		\end{lstlisting}
+		The CutSelection.log specifies which cuts you want to compare, but be aware, that the first cut in the list will be your reference cut and the ratio will always be build to that cut. The variable \$NumberOfCuts speciefies how many cuts should be compared. Please make sure that the CutSelection.log has at least so many entries. \\
+		Usually the RAW-yields and the corrected yields will be compared and the systematic error calculation will be performed by taking the difference of the corrected yields. Additionally the number of tracks with one vertex will be plotted for each cut, compared in one plot.\\
+		If the optMult = ''Mult`` is chosen and not HI running the $R_{mult}$ will be produced. If you choose multiplicity running and HI is chosen, the different cuts will be normalized to the number of collisions according to the centrality bin chosen in the cut number. Furthermore the corrected plots will not be produced and the systematic errors will not be calculated. Additionally the the $R_{CP}$ plot will be produced. 
+		For the systematic error studies a data file called:
+		\begin{center}
+		 	\$Meson\_\$optMC\_SystematicErrorCutStudies.dat
+		\end{center}
+		\subsection{ProduceFinalResults.C}
+		The ProduceFinalResults.C will put all your results together and plot it in a presentable form. Furthermore it will automatically just evaluate the parts which are possible to do depending on the energy you have chosen. This macro is not yet designed to run over HI-data, please do not use it in that case! You can start it by typing.
+		\begin{lstlisting}
+root -x -l -b -q ProduceFinalResults.C\(\"$Pi0CorrectedFile.root\"\,\"$EtaCorrectedFile.root\"\,\"$SystemErrorPi0.dat\"\,\"$standardCut\"\,\"$CutNumber\"\,\"$optMC\"\,\"Hagedorn\"\,\"$optSameBinningEta\"\,\"$optEn\"\,\"$optConf\"\,\"$optMult\"\)	
+		\end{lstlisting}
+		The options are the same as for all the other macros, except the \$optSameBinningEta which should be empty if you have the usual files for $\pi^0$ and $\eta$, but if you want to produce the plot $\eta /\pi^0$ you should use ''same`` for this variable and accordingly the output file off the CorrectSignal.C which has ''Pi0EtaBinning`` in it. Otherwise the Pi0CorrectedFile.root and EtaCorrectedFile.root are the usual output file for $\pi^0$ and $\eta$ either data or MC. The option ''Hagedorn`` will make the bin shift of your spectrum according to a Hagedorn-function this can be changed to ''Levy'' as well. \\
+		This macro is a little bit different from the others, as it includes additional dependencies compared to the other macros. One of the first things in the code is the definition of the additional includes.
+\begin{lstlisting}
+if(option.CompareTo("7TeV") == 0){
+	collisionSystem = "pp @ 7TeV";		
+	const char* fileNameNLOPi0 = "ALICENLOcalcPi0Vogelsang7Tev.dat";
+	const char* fileNameNLOEta = "ALICENLOcalcEtaVogelsang7TeV.dat";
+	const char* fileNameCaloPhos = "PHOS_pi0_7TeV_2010-11-22.root";
+	const char* fileNameChargedSpectra = "ChargedSpectra7TeV_20100915.dat";
+	const char* fileNameChargedExpectation= "ChargedPythia22092010.dat";
+	cout << "You have choosen 7TeV" << endl;
+} else if( option.CompareTo("900GeV") == 0) {
+	collisionSystem = "pp @ 900GeV";
+	const char* fileNameNLOPi0= "ALICENLOcalcPi0Vogelsang900Gev.dat";
+	const char* fileNameCaloPhos = "PHOS_pi0_900GeV_2010_11-29.root";
+} else if( option.CompareTo("HI") == 0) {
+	collisionSystem ="PbPb @ 2.76TeV";
+} else {
+	cout << "No correct collision system specification, has been given" << endl;
+	return;		
+}
+\end{lstlisting}
+	Please make sure that these files exist or rename them, or comment the corresponding parts out. This is not done automatically! Furthermore you have to male sure that the rootfile contain the correct histograms or graph with corresponding names, otherwise you have to adjust these in the code. The charged spectra have to be given in the format: $p_t$ \& value \& sys Err \& stat Err. Otherwise some thing will be mixed up. For the NLO files it is: $p_t$ \& value at $\mu/2$ \& value at $\mu$  \& value at $\mu \cdot 2$. \\
+	During running this macro first of all the FWHM, mass, SB, significance and RAW-yield will be produced together for $\pi^0$ and $\eta$ if it is 7TeV running and only $\pi^0$ if it is running at 900GeV. Afterwards the efficiency and acceptance will be produced in the same style if you run \$optMC=kTRUE. Afterwards a comparison of the corrected $\pi^0$ and $\eta$-spectra is performed (including the ratio compared to world data, if you run in the mode where they have the same binning in $p_t$). Therefore the $p_t$, $m_t$ and $x_t$ spectra are compared.\\
+	Additionally the spectra are fitted with the standard functions in there validity regions: Hagedorn, Levy, Powerlaw, Exponential, Boltzmann. The results are written to the file:
+	\begin{center}
+		\$optMC\_FinalExtraction\_\$Cutnumber\_\$optSameBinningEta\_Hagedorn.dat,
+	\end{center}
+	as well as the results from the binshift correction with the final factors, which will be the next plot produced. After having done this the spectra are compared to NLO, other $\pi^0$ measurements in ALICE and the charged spectra. The same procedure is repeated for $\eta$ of you run at 7TeV, however there are no official $\eta$ measurements yet and they are not compared to charged spectra.\\
+	If you run at 7TeV one additional step will follow the inclusion of systematic error on the $\pi^0$ spectrum. As soon as the calculation for $\eta$ and the 900GeV spectrum are available they will be included as well. The spectrum is then plotted with systematic errors and the spectrum is fitted again.\\
+	The last step is writting the following histograms and graphs to a file named:
+	\begin{center}
+	 	\$optMC\_GammaConversionResultsFullCorrection\_\$optSameBinninEta.root
+	\end{center}
+	\begin{table}[h!]
+		\begin{tabular}{lll}
+			RAWYieldPerEventsPi0 \\
+			CorrectedYieldPi0 &  Pi0\_SystErrorCompl\\
+			CorrectedYieldPi0BinShifted & Pi0\_SystErrorCompl\_BinShifted\\
+			RAWYieldPerEventsEta\\		
+			CorrectedYieldEta\\
+		\end{tabular}
+	\end{table}
+
+	\section{The Gamma Macros}
+
+	\section{The Afterburning Header Files}
+	\subsection{PlottingMeson.h}
+		This header includes the basics for plotting it is compilable and will just be used in the ExtractSignal.C. It has the following functions.
+		\begin{itemize}
+		 \item 	\begin{lstlisting}
+void StyleSettings()
+		       	\end{lstlisting}
+			Which sets some basic properties of the canvas, pads and the color scheme.
+		 \item \begin{lstlisting}
+void DrawGammaHisto( TH1* histo1, TString CutSelection, TString Title, TString XTitle, TString YTitle, Float_t xMin, Float_t xMax,Int_t bck) {
+		       \end{lstlisting}
+			This function will plot histo 1 with title as specified in the call, with the x-axis reaching from xMin to xMax as black points and errors if bck=0, and blue histogramm if bck=1.
+		\end{itemize}
+
+	\subsection{ExtractSignal.h}
+		In this header all variable for the ExtractSignal.C are predifined as well as the functions needed. In this file you have to adjust the different binning you want to have in $p_t$
+	
+	\subsection{PlottingGammaConversionHistos.h}
+		This header was designed to plot the histograms of the gamma conversion group with different setting the functions are:
+		\begin{itemize}
+		\item 	\begin{lstlisting}
+void StyleSettings()       	 
+		       	\end{lstlisting}
+		Sets some basic settings for canvases and pads, as well as the color palette.
+		 \item 	\begin{lstlisting}
+void StyleSettingsThesis()
+		       	\end{lstlisting}
+		Sets some more advanced settings for canvases and pads, as well as a multicolor palette.
+\item 	\begin{lstlisting}
+void SetPlotStyle() 		       	 
+		       	\end{lstlisting}
+		Fancy color palette is specified.
+\item 	\begin{lstlisting}
+void GammaScalingHistogramm(TH1 *histo, Float_t Factor) 
+void GammaScalingHistogramm(TH2 *histo, Float_t Factor)
+		       	\end{lstlisting}
+		Histograms are scaled by Factor.
+\item 	\begin{lstlisting}
+void StylingSliceHistos(TH1 *histo, Float_t markersize)		       	 
+		       	\end{lstlisting}
+		Set the marker style to 22 and marker size of the TH1's.
+\item 	\begin{lstlisting}
+void DrawAutoGammaHistos( TH1* histo1, 
+			  TH1*histo2, 
+			  const char *Title, const char *XTitle, const char *YTitle, 
+			  Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum, 
+			  Bool_t YRange, Float_t YMin ,Float_t YMax, 
+			  Bool_t XRange, Float_t XMin, Float_t XMax) 
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAutoGammaHisto(  TH1* histo1, 
+			  const char *Title, const char *XTitle, const char *YTitle,
+			  Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum,
+			  Bool_t YRange, Float_t YMin ,Float_t YMax,  
+			  Bool_t XRange, Float_t XMin, Float_t XMax) 
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAutoGammaHisto2D(	TH2 *histo,  
+				const char *Title, const char *XTitle, const char *YTitle, const char *Input,
+				Bool_t YRange, Float_t YMin ,Float_t YMax, 
+				Bool_t XRange, Float_t XMin, Float_t XMax) 	       	 
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawRatioGammaHisto( TH1* histo1, 
+			  const char *Title, const char *XTitle, const char *YTitle,
+			  Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum,
+			  Bool_t YRange, Float_t YMin ,Float_t YMax,  
+			  Bool_t XRange, Float_t XMin, Float_t XMax)
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawCutGammaHistos( TH1* histo1, TH1* histo2, 
+			TH1* histo3, TH1*histo4, 
+			const char *Title, const char *XTitle, const char *YTitle, const char *Legend1, const char *Legend2,
+			Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum,
+			Bool_t YRange, Float_t YMin ,Float_t YMax,  
+			Bool_t XRange, Float_t XMin, Float_t XMax) 		       	 
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawCutGammaHisto( TH1* histo1, TH1* histo2, 
+			const char *Title, const char *XTitle, const char *YTitle, const char *Legend,
+			Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum,
+			Bool_t YRange, Float_t YMin ,Float_t YMax,  
+			Bool_t XRange, Float_t XMin, Float_t XMax)
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawResolutionGammaHisto( TH1* histo1, 
+			      const char *Title, const char *XTitle, const char *YTitle,
+			      Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum,
+			      Bool_t YRange, Float_t YMin ,Float_t YMax,  
+			      Bool_t XRange, Float_t XMin, Float_t XMax)		       	 
+		       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAutoGammaHisto2DRes(	TH2 *histo,  
+						const char *Title, const char *XTitle, const char *YTitle, const char *Input,
+						Bool_t YRange, Float_t YMin ,Float_t YMax, 
+						Bool_t XRange, Float_t XMin, Float_t XMax)
+		       	\end{lstlisting}
+
+\item 	\begin{lstlisting}
+void DrawAutoGammaMesonHistos( TH1* histo1, 
+			      const char *Title, const char *XTitle, const char *YTitle, 
+			      Bool_t YRangeMax, Float_t YMaxFactor, Float_t YMinimum, 
+			      Bool_t YRange, Float_t YMin ,Float_t YMax, 
+			      Bool_t XRange, Float_t XMin, Float_t XMax)      	 
+      	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawGammaSetMarker( TH1* histo1, 
+			 Style_t markerStyle, Size_t markerSize, Color_t markerColor, Color_t lineColor )
+void DrawGammaSetMarkerTGraph( TGraph* graph, 
+			      Style_t markerStyle, Size_t markerSize, Color_t markerColor, Color_t lineColor )      	 
+void DrawGammaSetMarkerTGraphAsym( TGraphAsymmErrors* graph, 
+				   Style_t markerStyle, Size_t markerSize, Color_t markerColor, Color_t lineColor )     	 
+void DrawGammaSetMarkerTF1( TF1* fit1, 
+			    Style_t lineStyle, Size_t lineWidth, Color_t lineColor )      	 
+      	 
+      	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawGammaCanvasSettings( TCanvas* c1, Double_t leftMargin, Double_t rightMargin, Double_t topMargin, Double_t bottomMargin)
+void DrawGammaPadSettings( TPad* pad1, Double_t leftMargin, Double_t rightMargin, Double_t topMargin, Double_t bottomMargin)      	 
+      	\end{lstlisting}
+		\end{itemize}
+
+	\subsection{PlottingGammaConversionAdditional.h}
+	This header is used to make plotting of logos, texts and lines easier for the conversion plots. The functions are:
+	\begin{itemize}
+	 \item 	\begin{lstlisting}
+void DrawAliceLogoPi0Performance( Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+				  Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+				  Float_t textSize, Float_t nEvents,
+				  TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoPi0MC(Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+			Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+			Float_t textSize, Float_t nEvents,
+			TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoPi0Preliminary( Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+				  Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+				  Float_t textSize, Float_t nEvents,
+				  TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+
+\item 	\begin{lstlisting}
+void DrawAliceLogoCombined( Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+			    Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+			    Float_t textSize, Float_t nEvents,
+			    TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoCombinedMC( Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+			      Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+			      Float_t textSize, Float_t nEvents,
+			      TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoCombinedPreliminary(Float_t startTextX, Float_t startTextY, Float_t startPi0TextX, Float_t differenceText,
+				      Float_t startLogoX, Float_t startLogoY, Float_t widthLogo, 
+				      Float_t textSize, Float_t nEvents,
+				      TString collisionSystem, Bool_t mcFile , Bool_t rawData, Bool_t pi0Label)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogo(Float_t startX, Float_t startY, Float_t widthLogo, Float_t textHeight)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogo1D(Float_t startX, Float_t startY, Float_t widthLogo, Float_t textHeight)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoPerformance(Float_t startX, Float_t startY, Float_t widthLogo, Float_t textHeight, Float_t decrease, char *date,TString collisionSystem)
+	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoMC(Float_t startX, Float_t startY, Float_t widthLogo, Float_t textHeight, Float_t decrease, char *date,TString collisionSystem)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceLogoPerformance2D(Float_t startX, Float_t startY, Float_t widthLogo, Float_t textHeight, Float_t decrease, char *date, TString collisionSystem)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawAliceText(Float_t startX, Float_t startY, Float_t textHeight)
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawStructure()
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawArmenteros()
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawdEdxLabel()
+	       	\end{lstlisting}
+\item 	\begin{lstlisting}
+void DrawGammaLines(Float_t startX, Float_t endX,
+		    Float_t startY, Float_t endY,
+		    Float_t linew)
+	       	\end{lstlisting}
+
+
+
+
+	\end{itemize}
+
+
+	\section{The Scripts}
+	To make the running of the macros easier we introduced several shell scripts controlling the different combinations of macros, but still not all macros are included in this scripts. The main devision at the moment is the splitting in material analysis and the combined meson and gamma analysis.\\
+	Both scripts can be started in general by typing
+	\begin{lstlisting}[]{runningScripts}
+	sh $scriptname.sh [option] Datafile.root MCfile.root Outputformat
+	\end{lstlisting}
+	Here scriptname.sh represents the script which you want to run, Datafile.root and MCfile.root represent the locations of corresponding root-files. The variable Outputformat can be any picture ending which you would like to be produced. For this ending in each cut-directory a folder will be created named by the output-format. We can not assure that for all output-formats the pictures are exactly the same (for example in pdf output the ALICE-logo is missing), but in general it should work with all of them. Please be aware, that this files should include the same cutnumbers, otherwise the analysis will break at some point. Common options are:
+	\begin{itemize}
+	  \item -h
+	  \item --help 
+	\end{itemize}
+	Both of them will display some informations about how to run the macro. Furthermore a very short helper will be displayed if you start the scripts without any arguments. For all scripts in the beginning will be checked wether all necessary files for running do exist in the directory where you execute your script, if something is missing the script will be aborted by saying what is missing. \\
+	During running this scripts you will be asked some questions, this which are in common will be discussed now. 
+	\begin{itemize}
+	 \item "Do you want to take an already exitsting CutSelection.log-file. Yes/No"
+		\begin{itemize}
+		 \item [*] \textbf{Yes} - the file ``CutSelection.log'', which should exist in the directory, where you are running, will be processed
+		 \item [*] \textbf{No} - a new ``CutSelection.log'' file will be created from the Datafile.root and which will contain all cutnumbers included in this file.
+		\end{itemize}
+	\item ``Which collision system do you want to process? 7TeV (pp@7TeV), 900GeV (pp@900GeV), HI (PbPb@2.76GeV)"
+		\begin{itemize}
+		 \item [*] \textbf{7TeV} - All labels and binnings will be adjusted according to 7 TeV, furthermore the calculation of $x_t$ will be adjusted. In case of the start\_FullMesonAnalyse.sh $\pi^0$ and $\eta$ mesons will be analysed.
+		 \item [*] \textbf{900GeV}	- All labels and binnings will be adjusted according to 900 GeV, furthermore the calculation of $x_t$ will be adjusted. In case of the start\_FullMesonAnalyse.sh only $\pi^0$'s will be analysed. 
+		 \item [*] \textbf{HI}  - All labels and binning will be adjusted according to PbPb running at 2.76 TeV, as well as in the start\_FullMesonAnalyse.sh only $\pi^0$'s will be analysed with a first attempt to correct the data. The final plots will be missing.
+		\end{itemize}
+	\item ''Do you want to produce conference plots? Yes/No?``
+		\begin{itemize}
+		 \item [*] \textbf{Yes} - Some of the plots will be produced with a different scaling and a tag ''conference`` in the end of the file name, which will be copied to a dedicated conference directory in each cutdirectory in case of material analysis and in the standard Cutdirectory in case of meson analysis. Furthermore in the meson analysis the chosen binning for conference running and usual running is different and the $p_t$ bins will be chosen accoringly-
+		 \item [*] \textbf{No} - For the meson analysis the usual binning will be chosen and no plots will be taged with conference in their names.
+		\end{itemize}
+
+	\item 	"Please check that you really want to process all cuts, otherwise change the CutSelection.log. Remember at first all gamma cutstudies will be carried out. Make sure that the standard cut is the first in the file. Continue? Yes/No?";
+		\begin{itemize}	
+		 \item [*] \textbf{Yes} - The analysis will be continued with the cuts specified in the ''CutSelection.log``. If you want to modify the cutnumbers edit this file from a different shell and afterwards, confirm.
+		 \item [*] \textbf{No} - The running will be aborted and the script will be finished.
+		\end{itemize}
+	\end{itemize}
+
+		
+		\subsection{start\_Material\_Comp.sh}
+			This script is designed to produce basic files for the systematic error estimation of the material budget. You can start the script by typing
+			During running you will be asked to specify the MC sample which you are running as it can not be extracted from the file name, there you have the options to either chose Pythia or Phojet, according to this choice a directory will be created in which all the outputs will be put. This is necessary to evalutated both MC-generators for the systematic error of the material separately and keep track of what you are doing. 
+			Afterwards the script will automatically run for each cut the two material macros:
+			\begin{itemize}
+				\item  Photon\_Characteristics\_Events.C
+			 	\item  Plot\_Mapping\_Histos\_Events.C 	
+			\end{itemize}
+			It is forseen to include in this the Photon\_Resolution.C and the Cuts\_Events.C as well, but there are still some modifications necessary for this. The output will appear in the MC-Generator-directory under the subfolder for the cut and the subfolder for the specified output format.  
+		\subsection{start\_FullMesonAnalyse.sh}
+			This script is a little bit more complex as it controlls the running of the full meson and gamma analysis, which has several components, being arranged differently depending on the energy you choose. First of all the script has some additional options:
+			\begin{itemize}
+			 \item 	\textbf{-c} \hspace{1cm} - The script will not process the material macros as well as the ExtractSignal.C, it will directly step in at the point of correcting the already existing file, therefore one full run has to have been done before.
+			 \item  \textbf{-d} \hspace{1cm} - Will step in even after the CorrectSignal.C and will only fullfil the CutStudiesOverview.C and the final macros for the meson and gamma analysis.
+			 \item \textbf{-r} \hspace{1cm} - Only the final macros for the analysis will be carried out for the specified standard cut. 
+			\end{itemize}
+			Running without any option will start really at the beginning of the combined analysis. A detailed programm flowchart of the script can be found in fig. \ref{figSchemeMesonScript}.
+			\begin{figure}
+			 	\includegraphics[height=0.7\textheight,angle=90]{SchemeMesonScript.eps}
+				\caption{Detailed program flowchart of the start\_FullMesonAnalyse.sh}
+				\label{figSchemeMesonScript}
+			\end{figure}
+			Either the outputfile is automatically forwarded to the next macro needing this input, or the information to build the name of the files. The detailed description of the macros has already been given in the previous subsections.
+			During running the script you will be asked some additional questions, like how many bins you want to have for the meson analysis corresponding to the energy you are running (giving by this the maximum $p_t$ for the analysis). Additionally you will be asked the following:
+			\begin{itemize}
+			 \item ''What is your standard cut? ``
+				\begin{itemize}
+				 \item [*] You should select 1 Cut from the CutSelection.log, which will be displayed above this question. Furthermore you should afterwards arrange the CutSelection.log like this, that the standard cut is the first in your file, as this will be taken as reference cut for the CutStudiesOverview.C. Only for the standard cut the final macros (ProduceFinalResults.C, CalculateGammaToPi0.C) will be carried out, so choose wise.
+				\end{itemize}
+			\item ''Which fit do you want to do? CrystalBall or gaussian convoluted with an exponential function? CrystalBall/Gaussian? ``
+				\begin{itemize}
+				 	\item [*] \textbf{Gaussian} - A Gaussian function modified with an exponential tail and a linear background will be used to fit the invariant mass spectrum in the ExtractSignal.C, from this function the FWHM and mass position will be determined.
+					\item [*] \textbf{CrystalBall} - The fitting of the initial invariant mass distribution is implemented with the CrystalBall-function as well, however this function is not behaving as expected. Therefore it is better to use this flag just for debugging.
+				\end{itemize}
+			\item ''Do you want to perform multiplicity studies? Yes/No? ``
+				\begin{itemize}
+				 	\item [*] \textbf{Yes} - Each Cut will be normalised to the number of events after basic event selection, like vertex cuts, multiplicity or centrality cuts. This should only be used for multiplicity, centrality or V0OR/V0AND studies. Additionally in the CutStudiesOverview.C some more plots will be produced to show the multiplicity or centrality dependence of the spectra (like $R_{mult}$ or $R_{CP}$).
+					\item [*] \textbf{No} - Each Cut will be normalised to the number of events after AliPhysicsSelection, no further reduction of the events is taken into account for normalisation.  
+				\end{itemize}
+			\end{itemize}
