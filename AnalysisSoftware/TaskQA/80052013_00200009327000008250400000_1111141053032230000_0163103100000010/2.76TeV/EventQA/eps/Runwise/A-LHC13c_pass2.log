@@ -1,0 +1,79 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+LHC13c_pass2
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+pp, #sqrt{#it{s}} = 2.76 TeV
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+processed cut: 80052013_00200009327000008250400000_1111141053032230000_0163103100000010
+EMCal, Modules: 10, Cells: 11520
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Looping over Runs:
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195529/GammaConvCalo_20.root
+Run: 195529
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195531/GammaConvCalo_20.root
+Run: 195531
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195566/GammaConvCalo_20.root
+Run: 195566
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195567/GammaConvCalo_20.root
+Run: 195567
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195568/GammaConvCalo_20.root
+Run: 195568
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195592/GammaConvCalo_20.root
+Run: 195592
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195593/GammaConvCalo_20.root
+Run: 195593
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195596/GammaConvCalo_20.root
+Run: 195596
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195633/GammaConvCalo_20.root
+Run: 195633
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195635/GammaConvCalo_20.root
+Run: 195635
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195644/GammaConvCalo_20.root
+Run: 195644
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195673/GammaConvCalo_20.root
+Run: 195673
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195675/GammaConvCalo_20.root
+Run: 195675
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+Processing file: /home/dhruv/afterburner/AnalysisSoftware/DataQA/20160307/LHC13c_pass2/195677/GammaConvCalo_20.root
+Run: 195677
+NEventsAll: '0', NEvents (for normalization): '0'
+----------------------------------------------------------------------------

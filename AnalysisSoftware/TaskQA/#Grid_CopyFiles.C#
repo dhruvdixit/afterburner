@@ -1,0 +1,346 @@
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <TObject.h>
+#include <TString.h>
+#include <TFile.h>
+#include <TGrid.h>
+#include <TSystem.h>
+
+void ChangeStrucToStd(TString nameInputFile, TString namefileOutput, TString nameInputList);//defined at the bottom on line 244
+
+Bool_t copyAlien2Local(TString loc, TString rem);//defined at the bottom on line 289
+
+/*////////////////////////////////////////////////////////////////////////////////
+Reads in the contents of the file whose name is contained in filesRuns, and the contents are stored in vec, the input vector. The first line of the file is the first entry and it is stored in at vector at index 0. Returns false if vector is not empty.
+*////////////////////////////////////////////////////////////////////////////////
+Bool_t readin(TString fileRuns, std::vector<TString> &vec)
+{
+  cout << Form("Reading from %s...", fileRuns.Data()) << endl;
+  std::fstream file;
+  TString fVar;
+  Int_t totalN=0;
+  file.open(fileRuns.Data(), ios::in);
+  if(file.good())
+    {
+      file.seekg(0L, ios::beg);
+      while(!file.eof())
+        {
+	  file >> fVar;
+	  if(fVar.Sizeof()>1)
+            {
+	      vec.push_back(fVar);
+	      totalN++;
+            }
+        }
+    }
+  file.close();
+  if(totalN > 0) return kTRUE;
+  else return kFALSE;
+}
+/*//////////////////////////////////////////////////////////////////////////////////////
+Finds the data sets, copies them from the grid to local for both MC and data, and merges them.
+
+*///////////////////////////////////////////////////////////////////////////////////////
+void Grid_CopyFiles(TString folder = "/home/dhruv/data/work/Grid", TString system = "pp")
+{
+    cout<<"Connecting to Alien..."<<endl;
+    TGrid::Connect("alien://");
+    cout<<"==============================="<<endl;
+    cout<<"Successfully connected to Alien"<<endl;
+    cout<<"==============================="<<endl;
+
+//    TString train = "Legotrain-vAN-20160120-8TeV_NL";
+//    TString train = "Legotrain-vAN-20160124-8TeV_NL_2";
+//    TString train = "Legotrain-vAN-20160206-8TeV_NL_3";
+//    TString train = "Legotrain-vAN-20160206-8TeV_NL_4";
+    TString train = "Legotrain-vAN-20160206-8TeV_NL_5";
+
+    const Int_t nSets = 24;
+    const Int_t nData = 8;
+    TString DataSets[nSets]={
+      "LHC12a", "LHC12b", "LHC12c", "LHC12d", "LHC12f", "LHC12g", "LHC12h", "LHC12i",
+      "LHC15h1a1", "LHC15h1b", "LHC15h1c", "LHC15h1d", "LHC15h1f", "LHC15h1g", "LHC15h1h", "LHC15h1i",
+      "LHC15h2a", "LHC15h2b", "LHC15h2c", "LHC15h2d", "LHC15h2f", "LHC15h2g", "LHC15h2h", "LHC15h2i"
+    };
+
+//    Int_t trainRuns[nSets] = {1180,1181,1182,1183,1184,1185,1186,1187,
+//                             1487,1488,1489,1490,1491,1492,1493,1494,
+//                             1495,1496,1497,1498,1499,1500,1501,1502
+//                             };
+//    Int_t trainRuns[nSets] = {1188,1189,1190,1191,1192,1193,1194,1195,
+//                             1503,1504,1505,1506,1507,1508,1509,1510,
+//                             1511,1512,1513,1514,1515,1516,1517,1518
+//                             };
+//    Int_t trainRuns[nSets] = {1241,1242,1243,1244,1245,1246,1247,1248,
+//                             1596,1597,1598,1599,1600,1601,1602,1603,
+//                             1604,1605,1606,1607,1608,1609,1610,1611
+//                             };
+//    Int_t trainRuns[nSets] = {1241,1242,1243,1244,1245,1246,1247,1248,
+//                             1623,1624,1625,1626,1627,1628,1629,1630,
+//                             1631,1632,1633,1634,1635,1636,1637,1638
+//                             };
+    Int_t trainRuns[nSets] = {1241,1242,1243,1244,1245,1246,1247,1248,
+                             1662,1663,1664,1665,1666,1667,1668,1669,
+                             1670,1671,1672,1673,1674,1675,1676,1677
+                             };
+
+    TString runlistData = "merge_runlist_9";
+    TString runlistMC = "merge_runlist_2";
+    TString trigger = "kINT7";//V0 or
+
+//    const Int_t nFiles = 2;
+//    TString Files[nFiles] = {"GammaCalo_111","GammaConvCalo_31"};
+
+    const Int_t nFiles = 4;
+    TString Files[nFiles] = {"GammaCalo_109","GammaCalo_110","GammaConvCalo_110","GammaConvCalo_111"};
+
+    const Int_t nMerge = 4;
+    TString strMerge[nMerge]={"LHC12","LHC15h1","LHC15h2","LHC15h"};
+    Int_t merge[2][nMerge]={ {0,8,16,8},
+                             {7,15,23,23}
+                           };
+
+//    const Int_t nSets = 8;
+//    const Int_t nData = 8;
+//    TString DataSets[nSets]={
+//      "LHC12a", "LHC12b", "LHC12c", "LHC12d", "LHC12f", "LHC12g", "LHC12h", "LHC12i"
+//    };
+
+//    Int_t trainRuns[nSets] = {1180,1181,1182,1183,1184,1185,1186,1187};
+
+//    TString runlistData = "merge_runlist_11";
+//    TString runlistMC = "";
+//    TString trigger = "kEMCEGA";
+
+//    const Int_t nFiles = 2;
+//    TString Files[nFiles] = {"GammaCalo_111","GammaConvCalo_31"};
+
+//    const Int_t nMerge = 1;
+//    TString strMerge[nMerge]={"LHC12"};
+//    Int_t merge[2][nMerge]={ {0},
+//                             {7}
+//                           };
+
+    //---------------------------------------------------------------------------------------------------
+
+    TString alienFolder = Form("/alice/cern.ch/user/a/alitrain/PWGGA/GA_%s/",system.Data());
+    TString alienFolder_MC = Form("/alice/cern.ch/user/a/alitrain/PWGGA/GA_%s_MC/",system.Data());
+    
+    //In Alien, stores the ls of alienFolder into tempData, ad alienFolder_MC into tempMC
+    gSystem->Exec(Form("alien_ls %s > tempData.log",alienFolder.Data()));
+    gSystem->Exec(Form("alien_ls %s > tempMC.log", alienFolder_MC.Data()));
+
+    TString strTrain[nSets];
+    std::vector<TString> vecStrTrain;
+    std::vector<TString> vecStrTrainMC;
+    if(!readin("tempData.log", vecStrTrain)) cout << "\n\n\n**********************ERROR!**********************\n\n\n" << endl;
+    if(!readin("tempMC.log", vecStrTrainMC)) cout << "\n\n\n**********************ERROR!**********************\n\n\n" << endl;
+
+    //looping over the sets to find when the files name in the alien folder begining with a trainRun number, it is stored in strTrain. Done for both data and MC
+    for(Int_t i=0; i<nSets; i++)
+      {
+	TString temp;
+	TString tempRuns;
+	if(i<nData)
+	  {
+	    for(Int_t j=0; j<(Int_t)vecStrTrain.size(); j++)
+	      {
+		tempRuns = Form("%i",trainRuns[i]);
+		temp = vecStrTrain.at(j);
+		if(temp.BeginsWith(tempRuns))
+		  {
+		    strTrain[i] = temp;
+		    break;
+		  }
+	      }
+	  }
+	else
+	  {
+	    for(Int_t j=0; j<(Int_t)vecStrTrainMC.size(); j++)
+	      {
+		tempRuns = Form("%i",trainRuns[i]);
+		temp = vecStrTrainMC.at(j);
+		if(temp.BeginsWith(tempRuns))
+		  {
+		    strTrain[i] = temp;
+		    break;
+		  }
+	      }
+	  }
+      }
+    
+    Int_t nErr[nSets];
+    TString fPathGrid;
+    TString fPathLocal;
+    
+    fPathLocal = Form("%s/%s", folder.Data(), train.Data());
+    gSystem->Exec(Form("mkdir -p %s",fPathLocal.Data()));
+
+    TString mergePeriod[nMerge][nFiles];
+    //loops to make the merge command "hadd -f -k pathTrigger-LHC#_GammaCallo#" for all possble combinations
+    for(Int_t iFiles=0; iFiles<nFiles; iFiles++)
+      {
+	for(Int_t iM=0; iM<nMerge; iM++)
+	  {
+	    TString mergeP = Form("%s/%s-%s_%s.root", fPathLocal.Data(), trigger.Data(), strMerge[iM].Data(), Files[iFiles].Data());
+	    mergePeriod[iM][iFiles] = Form("hadd -f -k %s",mergeP.Data());
+	  }
+      }
+    //copying the file to from grid to local
+    for(Int_t i=0; i<nSets; i++)
+    {
+      nErr[i]=0;
+      for(Int_t k=0; k<nFiles; k++)//sets the directory address for either data or MC
+        {
+          if(i<nData) 
+	    fPathGrid = Form("%s%s/%s/%s.root", alienFolder.Data(), strTrain[i].Data(), runlistData.Data(), Files[k].Data());
+          else 
+	    fPathGrid = Form("%s%s/%s/%s.root", alienFolder_MC.Data(), strTrain[i].Data(), runlistMC.Data(), Files[k].Data());
+	  
+          TString fPathTemp = Form("%s/%s", fPathLocal.Data(), strTrain[i].Data());
+          gSystem->Exec(Form("mkdir -p %s",fPathTemp.Data()));
+	  
+          fPathTemp+=Form("/%s-",trigger.Data());
+          fPathTemp+=Files[k].Data();
+          fPathTemp+=".root";
+
+          cout << endl;
+          cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+          cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+          cout << "Copying from (grid): " << fPathGrid.Data() << endl;
+          cout << "Copying to (local): " << fPathTemp.Data() << endl;
+          cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+          cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+
+          TFile fileCheck(fPathTemp.Data());
+          if(!fileCheck.IsZombie()) 
+	    {
+	      cout << "\n\t\t>>>>>>>>>>>>>>>>>>Info: ROOT-File |" << fPathTemp.Data() << "| does already exist! Continue...<<<<<<<<<<<<<<\n" << endl;
+	      for(Int_t iM=0; iM<nMerge; iM++)
+		{
+		  if(i>=merge[0][iM] && i<=merge[1][iM]) 
+		    mergePeriod[iM][k] += Form(" %s",fPathTemp.Data());
+		  if( k==0 ) 
+		    gSystem->Exec(Form("ln -s %s/%s %s/%s",fPathLocal.Data(), strTrain[i].Data(), fPathLocal.Data(), DataSets[i].Data()));
+		}
+	      continue;
+	    }
+	  
+          if(copyAlien2Local(fPathGrid,fPathTemp))
+	    {
+	      ChangeStrucToStd(fPathTemp.Data(),fPathTemp.Data(),Files[k].Data());
+	      for(Int_t iM=0; iM<nMerge; iM++)
+		{
+		  if(i>=merge[0][iM] && i<=merge[1][iM]) 
+		    mergePeriod[iM][k] += Form(" %s",fPathTemp.Data());
+		  if( k==0 ) 
+		    gSystem->Exec(Form("ln -s %s/%s %s/%s",fPathLocal.Data(), strTrain[i].Data(), fPathLocal.Data(), DataSets[i].Data()));
+		}
+	      continue;
+	    }
+          else
+	    {
+	      cout << "\n\n\t**********************************************************************************************" << endl;
+	      cout << "\t**********************************************************************************************" << endl;
+	      cout << "\t*******************Err: copyAlien2Local(), check runlist in photonconv rep!*******************" << endl;
+	      cout << "\t**********************************************************************************************" << endl;
+	      cout << "\t**********************************************************************************************\n" << endl;
+	      nErr[i]++;
+	    }
+        }
+    }
+
+    cout << "\n------------------------------------------------------" << endl;
+    cout << "Merging: " << endl;
+    cout << "------------------------------------------------------\n" << endl;
+    
+    //merges the data sets
+    for(Int_t iFiles=0; iFiles<nFiles; iFiles++)
+      {
+	for(Int_t iM=0; iM<nMerge; iM++)
+	  {
+	    cout << "Merging " << strMerge[iM].Data() << " ..." << endl;
+	    gSystem->Exec(mergePeriod[iM][iFiles].Data());
+	    cout << "done!" << endl;
+	  }
+      }
+    
+    for(Int_t i=0; i<nSets; i++)
+      {
+	cout << "DataSet: " << DataSets[i].Data() << ", number of errors: " << nErr[i] << endl;
+      }
+    
+    gSystem->Exec("rm tempData.log");
+    gSystem->Exec("rm tempMC.log");
+    
+    return;
+}
+
+/*/////////////////////////////////////////////////////////////////////////////////////////
+Prints all the objects in a list named nameInputList, stores it in a list in a file called nameFileOutput
+/////////////////////////////////////////////////////////////////////////////////////////*/
+void ChangeStrucToStd(TString nameInputFile, TString namefileOutput, TString nameInputList)
+{
+
+   TFile *fileInput = new TFile(nameInputFile.Data());
+   cout << fileInput << endl;
+
+   TList *listInput =(TList*)fileInput->Get(nameInputList.Data());
+   if (listInput == NULL)
+     {
+       return;
+     }
+   else 
+     listInput->SetOwner();//Take owership of the list, so the list will be deleted when listInput is deleted
+
+   TObjArray *rArr = nameInputList.Tokenize("_");
+   TObjString* rString = (TObjString*)rArr->At(0);
+   TString string = rString->GetString();//String of all characters before the first _ in nameInputList
+
+   TFile *fileOutput = new TFile(namefileOutput,"RECREATE");
+   TList *listOutput =(TList*)fileOutput->Get(string.Data());
+   Bool_t kNewList = kFALSE;
+   if (!listOutput)//a check to see if listOutput exists in fileOutput
+     {
+       kNewList = kTRUE;
+       listOutput = new TList();
+       listOutput->SetName(string.Data());
+     }
+
+   //for loop to print which lists were found in listInput
+   for(Int_t i = 0; i<listInput->GetSize(); i++)
+     {
+       TList *listToSave = (TList*)listInput->At(i);
+       TString dirname = listToSave->GetName();
+       cout<<dirname<<endl;
+       if(listToSave)
+	 {
+	   cout<<"found"<<endl;
+	   listOutput->Add(listToSave);
+	 }
+     }
+   
+   listOutput->Write("",TObject::kSingleKey);//Why is this key name a null string?
+   delete listOutput;
+   fileOutput->Close();
+   delete fileOutput;
+
+   delete listInput;
+   fileInput->Close();
+   delete fileInput;
+
+   return;
+}
+
+/*/////////////////////////////////////////////////////////////////////////////////////////
+Copies a file from the loc to rem.
+/////////////////////////////////////////////////////////////////////////////////////////*/
+Bool_t copyAlien2Local(TString loc, TString rem)
+{
+   TString sl(Form("alien://%s", loc.Data()));
+   TString sr(Form("file://%s", rem.Data()));
+   Bool_t ret = TFile::Cp(sl,sr);
+   if (!ret) cout << Form("ERROR: Failed to copy %s to %s", sl.Data(), sr.Data()) << endl;
+   return ret;
+}
